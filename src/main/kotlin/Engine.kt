@@ -3,6 +3,7 @@ package io.kicrograd
 import kotlin.math.exp
 import kotlin.math.max
 
+// Used to classify Values created for different purposes for better debugging and understanding
 enum class ValueType {
     PARAMETER,
     INPUT,
@@ -10,6 +11,7 @@ enum class ValueType {
     NONE,
 }
 
+// Mathematical operators supported
 enum class Operator {
     PLUS,
     TIMES,
@@ -102,6 +104,28 @@ class Value(
 
     override fun toString(): String {
         return "Value(data=$data, gradient=$gradient)"
+    }
+
+    // Count the number of each type of UNIQUE Value in the computational graph
+    // Total number of edges in the computational graph will be higher
+    // Since we only have binary operators, we can have at most 2 children. Hence an equation like `x + y + z`
+    // will have a total of 5 nodes.
+    fun getTypeCounts(): Map<ValueType, Int> {
+        val allChildren = mutableSetOf<Value>()
+        fun dfs(v: Value) {
+            if (allChildren.contains(v)) {
+                return
+            }
+            allChildren.add(v)
+            v.children.forEach { dfs(it) }
+        }
+        dfs(this)
+
+        val stats = mutableMapOf<ValueType, Int>()
+        allChildren.forEach {
+            stats[it.type] = stats.getOrDefault(it.type, 0) + 1
+        }
+        return stats
     }
 
 }

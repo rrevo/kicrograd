@@ -1,4 +1,5 @@
 import io.kicrograd.Value
+import io.kicrograd.ValueType
 import io.kicrograd.times
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -22,6 +23,9 @@ class EngineTest {
 
         // dy/dx = 6x + 4 @ x = 4 -> 28
         assertEquals(28.0f, x.gradient)
+
+        // See /docs/kicrograd-equation.jpg
+        assertEquals(mapOf(ValueType.NONE to 9), y.getTypeCounts())
     }
 
     @Test
@@ -73,6 +77,8 @@ class EngineTest {
 
         // dL/db  = dd/de * de/db -> -2 * 2 -> -4
         assertEquals(-4.0f, b.gradient)
+
+        assertEquals(mapOf(ValueType.NONE to 7), L.getTypeCounts())
     }
 
     @Test
@@ -107,5 +113,8 @@ class EngineTest {
         assertEquals(1.0f, w1.gradient, delta)
         // dy/dw2
         assertEquals(0.0f, w2.gradient, delta)
+
+        // 2 inputs and one bias. 5 (inputs) + 4 (intermediate) + 1 (activation) = 10
+        assertEquals(mapOf(ValueType.NONE to 10), y.getTypeCounts())
     }
 }

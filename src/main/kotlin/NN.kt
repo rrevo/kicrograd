@@ -3,6 +3,9 @@ package io.kicrograd
 import kotlin.random.Random
 
 abstract class Module {
+
+    abstract fun call(inputs: List<Value>): List<Value>
+
     abstract fun parameters(): List<Value>
 
     fun zeroGrad() {
@@ -17,6 +20,9 @@ class Neuron(
     private val weights: MutableList<Value> = mutableListOf()
     private var bias: Value
 
+    // Weights, bias and internal parameters should be initialized. The data will be random
+    // initially, but updated with learning.
+    // These parameter values are not connected in any computational graph at this stage.
     init {
         require(inputCount > 0) { "inputCount must be greater than 0" }
         require(
@@ -39,7 +45,6 @@ class Neuron(
             return randomFloat
         }
 
-        // WTF
         fun generateFloatInRange(): Float {
             return min + generateNonZeroFloat() * (max - min)
         }
@@ -50,7 +55,11 @@ class Neuron(
         bias = Value(generateFloatInRange(), type = ValueType.PARAMETER)
     }
 
-    fun call(inputs: List<Value>): Value {
+    // Forward pass through the neuron
+    // The new inputs, xis are connected to the weights and bias of the neuron with optional activation
+    // The computational graph of xi.wi + b | activation is created and the output value returned
+    // Returns a single output value in a List
+    override fun call(inputs: List<Value>): List<Value> {
         require(inputs.size == weights.size) { "inputs.size must be equal to weights.size" }
         var sum = bias
 
@@ -63,7 +72,7 @@ class Neuron(
             else -> sum
         }
         output.type = ValueType.OUTPUT
-        return output
+        return listOf(output)
     }
 
     override fun parameters(): List<Value> {
@@ -90,6 +99,7 @@ class Layer(
 ) : Module() {
     private val neurons: MutableList<Neuron> = mutableListOf()
 
+    // Create the Neurons for the layer
     init {
         require(inputCount > 0) { "inputCount must be greater than 0" }
         require(outputCount > 0) { "outputCount must be greater than 0" }
@@ -99,11 +109,14 @@ class Layer(
         }
     }
 
-    fun call(inputs: List<Value>): List<Value> {
+    // Forward pass through the layer
+    // The same inputs are connected to every neuron in the layer
+    // The output of each neuron is collected and returned as a List
+    override fun call(inputs: List<Value>): List<Value> {
         require(inputs.size == inputCount) { "inputs.size must be equal to inputCount" }
         val outputs = mutableListOf<Value>()
         for (neuron in neurons) {
-            outputs.add(neuron.call(inputs))
+            outputs.addAll(neuron.call(inputs))
         }
         return outputs
     }
@@ -127,6 +140,11 @@ class MLP(
 ) : Module() {
     private val layers: MutableList<Layer> = mutableListOf()
 
+    // Create the Layers for the MLP
+    // Based on inputCount, an input layer is created
+    // Based on outputLayerCount, the hidden and output layers are created
+    // The final layer has no activation
+    // See ./docs/kicrograd-mlp.jpg for a sample visualization.
     init {
         require(inputCount > 0) { "inputCount must be greater than 0" }
         require(outputLayerCount.isNotEmpty()) { "outputLayerCount must not be empty" }
@@ -142,7 +160,11 @@ class MLP(
         layers.add(Layer(prevLayerOutputCount, outputLayerCount.last(), Operator.NONE))
     }
 
-    fun call(inputs: List<Value>): List<Value> {
+    // Forward pass through the MLP
+    // Input from one layer is the input to the next layer
+    // The output of the final layer is returned
+    // The computational graph is created for the entire input dataset
+    override fun call(inputs: List<Value>): List<Value> {
         var outputs = inputs
         for (layer in layers) {
             outputs = layer.call(outputs)

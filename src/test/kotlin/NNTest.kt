@@ -6,12 +6,15 @@ class NNTest {
     @Test
     fun testMLP() {
         val mlp = MLP(3, listOf(4, 4, 1))
+
+        // Each row is a separate input. We have 4 inputs and 3 features aka xi.
         val inputs = listOf(
             listOf(2.0, 3.0, -1.0).map { Value(it.toFloat(), type = ValueType.INPUT) },
             listOf(3.0, -1.0, 0.5).map { Value(it.toFloat(), type = ValueType.INPUT) },
             listOf(0.5, 1.0, 1.0).map { Value(it.toFloat(), type = ValueType.INPUT) },
             listOf(1.0, 1.0, -1.0).map { Value(it.toFloat(), type = ValueType.INPUT) },
         )
+        // Desired output for each input
         val outputs = listOf(1.0, -1.0, -1.0, 1.0).map { Value(it.toFloat(), type = ValueType.OUTPUT) }
 
         val predictionsIndex = 10
@@ -19,7 +22,7 @@ class NNTest {
         var previousPrediction = outputs.map { Value(0.0f) }
 
         for (i in 0..epochs) {
-            // forward pass
+            // forward pass which generates output predictions
             val outputPredictions = inputs.map { mlp.call(it) }.flatten()
 
             if (i % predictionsIndex == 0) {
@@ -46,6 +49,27 @@ class NNTest {
                 param.data += param.gradient * -0.01f
             }
         }
+    }
+
+
+    @Test
+    fun testMLPStats() {
+        val mlp = MLP(3, listOf(4, 4, 1))
+        val inputs = listOf(
+            listOf(2.0, 3.0, -1.0).map { Value(it.toFloat(), type = ValueType.INPUT) },
+            listOf(3.0, -1.0, 0.5).map { Value(it.toFloat(), type = ValueType.INPUT) },
+            listOf(0.5, 1.0, 1.0).map { Value(it.toFloat(), type = ValueType.INPUT) },
+            listOf(1.0, 1.0, -1.0).map { Value(it.toFloat(), type = ValueType.INPUT) },
+        )
+        val outputs = listOf(1.0, -1.0, -1.0, 1.0).map { Value(it.toFloat(), type = ValueType.OUTPUT) }
+
+        // forward pass
+        val outputPredictions = inputs.map { mlp.call(it) }.flatten()
+        println("Single output: ${outputPredictions[0].getTypeCounts()}")
+
+        // loss calculation
+        val loss = lossCalculation(outputs, outputPredictions)
+        println("Loss: ${loss.getTypeCounts()}")
     }
 
     // Mean Squared Error
