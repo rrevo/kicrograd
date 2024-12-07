@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 
 class EngineTest {
 
-    val delta = 0.0001f
+    private val delta = 0.0001f
 
     @Test
     fun testSingleVariable() {
@@ -16,12 +16,12 @@ class EngineTest {
         val fourX = 4.0f * x
         val y = threeXsq + fourX + 5.0f
 
-        assertEquals(0.0f, y.gradient())
+        assertEquals(0.0f, y.gradient)
         y.backward()
-        assertEquals(1.0f, y.gradient())
+        assertEquals(1.0f, y.gradient)
 
         // dy/dx = 6x + 4 @ x = 4 -> 28
-        assertEquals(28.0f, x.gradient())
+        assertEquals(28.0f, x.gradient)
     }
 
     @Test
@@ -33,12 +33,12 @@ class EngineTest {
         val fourX = 4.0f * x
         val y = threeXsq + fourX + 5.0f
 
-        assertEquals(0.0f, y.gradient())
+        assertEquals(0.0f, y.gradient)
         y.backward()
-        assertEquals(1.0f, y.gradient())
+        assertEquals(1.0f, y.gradient)
 
         // dy/dx = 6x + 4 @ x = -2 -> -8
-        assertEquals(-8.0f, x.gradient())
+        assertEquals(-8.0f, x.gradient)
     }
 
     @Test
@@ -52,27 +52,27 @@ class EngineTest {
         val f = Value(-2.0f)
         val L = d * f
 
-        assertEquals(0.0f, L.gradient())
+        assertEquals(0.0f, L.gradient)
         L.backward()
 
         // dL/dL = 1
-        assertEquals(1.0f, L.gradient())
+        assertEquals(1.0f, L.gradient)
 
         // dL/df = value of d since its multiplication -> 4
-        assertEquals(4.0f, f.gradient())
+        assertEquals(4.0f, f.gradient)
 
         // dL/dd = value of f -> -2
-        assertEquals(-2.0f, d.gradient())
+        assertEquals(-2.0f, d.gradient)
 
         // dL/dc = dL/dd * dd/dc aka chain rule = -2 * 1 -> -2
-        assertEquals(-2.0f, c.gradient())
-        assertEquals(c.gradient(), e.gradient())
+        assertEquals(-2.0f, c.gradient)
+        assertEquals(c.gradient, e.gradient)
 
         // dL/da = (((a * b) + c) * f) @ a = 2, b = -3, c = 10, f = -2 -> 6
-        assertEquals(6.0f, a.gradient())
+        assertEquals(6.0f, a.gradient)
 
         // dL/db  = dd/de * de/db -> -2 * 2 -> -4
-        assertEquals(-4.0f, b.gradient())
+        assertEquals(-4.0f, b.gradient)
     }
 
     @Test
@@ -94,18 +94,18 @@ class EngineTest {
 
         y.backward()
         // dy/dy = 1
-        assertEquals(1.0f, y.gradient())
+        assertEquals(1.0f, y.gradient)
 
         // dy/dn = 1 - tanh^2(n) -> 1 - 0.5 -> 0.5
-        assertEquals(0.5f, x1w1_x2w2_b.gradient(), delta)
-        assertEquals(0.5f, x1w1_x2w2.gradient(), delta)
-        assertEquals(0.5f, b.gradient(), delta)
-        assertEquals(0.5f, x1w1.gradient(), delta)
-        assertEquals(0.5f, x2w2.gradient(), delta)
+        assertEquals(0.5f, x1w1_x2w2_b.gradient, delta)
+        assertEquals(0.5f, x1w1_x2w2.gradient, delta)
+        assertEquals(0.5f, b.gradient, delta)
+        assertEquals(0.5f, x1w1.gradient, delta)
+        assertEquals(0.5f, x2w2.gradient, delta)
 
         // dy/dw1
-        assertEquals(1.0f, w1.gradient(), delta)
+        assertEquals(1.0f, w1.gradient, delta)
         // dy/dw2
-        assertEquals(0.0f, w2.gradient(), delta)
+        assertEquals(0.0f, w2.gradient, delta)
     }
 }

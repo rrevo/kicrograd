@@ -1,19 +1,30 @@
 package io.kicrograd
 
-enum class Operator(val op: String) {
-    PLUS("+"),
-    TIMES("*"),
-    TANH("tanh"),
-    RELU("relu"),
-    NONE("none"),
+import kotlin.math.exp
+import kotlin.math.max
+
+enum class ValueType {
+    PARAMETER,
+    INPUT,
+    OUTPUT,
+    NONE,
+}
+
+enum class Operator {
+    PLUS,
+    TIMES,
+    TANH,
+    RELU,
+    NONE,
 }
 
 class Value(
-    val data: Float,
+    var data: Float,
     private val children: List<Value> = emptyList(),
-    private val operator: Operator = Operator.NONE
+    private val operator: Operator = Operator.NONE,
+    var type: ValueType = ValueType.NONE,
 ) {
-    private var gradient = 0.0f
+    var gradient = 0.0f
 
     operator fun plus(other: Value): Value {
         return Value(data + other.data, listOf(this, other), Operator.PLUS)
@@ -24,13 +35,13 @@ class Value(
     }
 
     fun tanh(): Value {
-        val expValue = Math.exp(2 * data.toDouble()).toFloat();
+        val expValue = exp(2 * data.toDouble()).toFloat()
         val t = (expValue - 1.0f) / (expValue + 1.0f)
         return Value(t, listOf(this), Operator.TANH)
     }
 
     fun relu(): Value {
-        return Value(Math.max(0.0f, data), listOf(this), Operator.RELU)
+        return Value(max(0.0f, data), listOf(this), Operator.RELU)
     }
 
     operator fun plus(other: Float): Value {
@@ -39,10 +50,6 @@ class Value(
 
     operator fun times(other: Float): Value {
         return times(Value(other))
-    }
-
-    fun gradient(): Float {
-        return this.gradient
     }
 
     fun backward() {
@@ -84,7 +91,7 @@ class Value(
             }
 
             Operator.RELU -> {
-                children[1].gradient += if (data > 0) gradient else 0.0f
+                children[0].gradient += if (data > 0) gradient else 0.0f
             }
 
             Operator.NONE -> {
